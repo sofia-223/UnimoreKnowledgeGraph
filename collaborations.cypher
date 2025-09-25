@@ -86,3 +86,15 @@ where 'Document' in labels(n)
 return n.Title as document, score as betweenness
 order by betweenness desc
 limit 20;
+
+
+match (d:Document)-[:PUBLISHED_IN]->(:Source)-[:BELONGS_TO_CATEGORY]->(c:Category)
+with c.SubjectCategory as Category, collect(d) as Docs
+// conta quanti di questi documenti hanno collaborazioni internazionali
+with Category, 
+     size(Docs) as TotalDocs,
+     size([doc in Docs where (doc)-[:HAS_INTERNATIONAL_COLLABORATION]->(:InternationalCollaboration) | doc]) as IntlCollabDocs
+return Category, TotalDocs, IntlCollabDocs, 
+       toFloat(IntlCollabDocs)/TotalDocs*100 as PercentInternationalCollab
+order by PercentInternationalCollab desc
+limit 20
